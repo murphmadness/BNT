@@ -24,7 +24,7 @@ library(tidyr)
 #########The date modified needs to be defined for the new files
 #########with the EXACT date, not a date from before
 #########
-b <- as.Date("2022-08-22")
+b <- as.Date("2022-10-29")
 
 #h defines the location of all the raw well files including the new files
 h <- "C:/Users/riley/Documents/BNTGWMC/Groundwater data/LennonUpdates/wells only"
