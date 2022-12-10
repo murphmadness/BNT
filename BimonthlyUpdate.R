@@ -24,7 +24,7 @@ library(tidyr)
 #########The date modified needs to be defined for the new files
 #########with the EXACT date, not a date from before
 #########
-b <- as.Date("2022-10-29")
+b <- as.Date("2022-12-10")
 
 #h defines the location of all the raw well files including the new files
 h <- "C:/Users/riley/Documents/BNTGWMC/Groundwater data/LennonUpdates/wells only"
@@ -263,3 +263,77 @@ system('7z a "C:/Users/riley/Documents/BNTGWMC/LatestData/R Filtered/AllData.7z"
 ##############
 
 #Then files are uploaded to the website
+
+
+##############
+##############
+############## AllPlots
+##############
+##############
+
+library(plotly)
+library(dplyr)
+library(lubridate)
+library(tidyr)
+library(reticulate)
+
+a <- "C:/Users/riley/Documents/BNTGWMC/LatestData/R truncated"
+b <- list.files(a,pattern="csv")
+
+#gap data will bee used to slice out bad data for viewing
+gaps <- read.csv("C:/Users/riley/Documents/BNTGWMC/LatestData/Roffset/gaps.csv",stringsAsFactors = F) %>%
+  mutate(start.gap = mdy_hm(start.gap), end.gap =mdy_hm(end.gap))
+
+
+#Make a data.frame for each that contains the well names
+
+f1 <- function(x){
+  #get the name of just the well
+  temp1 <- gsub("\\_Summary\\.csv","",x)
+  temp2 <- read.csv(paste(a,x,sep="/"),stringsAsFactors = F) %>%
+    select(D.T, maximized) %>%
+    mutate(D.T = ymd_hms(D.T)) %>%
+    filter(complete.cases(maximized)) %>%
+    mutate(Well = temp1)
+  return(temp2)
+}
+
+
+d <- do.call("rbind",lapply(b,f1)) %>%
+  inner_join(gaps,by="Well") %>%
+  mutate(test = ifelse((as.numeric(D.T) > as.numeric(start.gap) & as.numeric(D.T) < as.numeric(end.gap)),1,0)) %>%
+  group_by(D.T,maximized,Well) %>%
+  summarize(max = max(test)) %>%
+  ungroup() %>%
+  filter(max == 0) %>%
+  select(-max)
+
+e <- gaps %>%
+  pivot_longer(contains("gap"),names_to = "maximized",values_to = "D.T") %>%
+  mutate(maximized = NA) %>%
+  bind_rows(d) %>%
+  arrange(D.T)
+
+#Save over file 
+#AllWells2022.html and .png
+#automate in script later
+plot_ly(x=e$D.T, y=e$maximized,type='scatter',mode='lines',color=e$Well) %>% 
+  layout(title="Continuous Monitorring Wells",
+         xaxis=list(title="Date"),yaxis=list(title="depth below surface(ft)"))
+
+
+file.copy("C:/Users/riley/Documents/Coding/BNT/AllWells2022.html",
+          "C:/Users/riley/Documents/BNTGWMC/LatestData/R Filtered/AllWells2022.html",
+          overwrite = T)
+
+file.copy("C:/Users/riley/Documents/Coding/BNT/AllWells2022.png",
+          "C:/Users/riley/Documents/BNTGWMC/LatestData/R Filtered/AllWells2022.png",
+          overwrite = T)
+
+
+##############
+##############
+############## end AllPlots
+##############
+##############
+
