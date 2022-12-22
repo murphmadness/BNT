@@ -252,6 +252,12 @@ system('7z a "C:/Users/riley/Documents/BNTGWMC/LatestData/R Filtered/AllData.7z"
 system('7z a "C:/Users/riley/Documents/BNTGWMC/LatestData/R Filtered/AllData.7z" "C:/Users/riley/Documents/BNTGWMC/LatestData/R byDay/*.csv"',
        show.output.on.console = T)
 
+#Files from bnt_rain.R
+system('7z a "C:/Users/riley/Documents/BNTGWMC/LatestData/R Filtered/AllData.7z" "C:/Users/Riley/Documents/BNTGWMC/AllDataWebsite/*.csv"',
+       show.output.on.console = T)
+
+
+
 
 ###Now upload Alldata and filtered and graphs
 
