@@ -183,3 +183,5 @@ plot_ly(x=e$D.T, y=e$maximized,type='scatter',mode='lines',color=e$Well) %>%
          xaxis=list(title="Date"),yaxis=list(title="depth below surface(ft)"))
 
 #AllWells2022.html
+
+#12/10/22 save it in the filtered folder to ease uploads
