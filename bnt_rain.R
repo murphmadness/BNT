@@ -3,6 +3,7 @@
 library(dplyr)
 library(lubridate)
 library(plotly)
+library(zoo)
 
 #compile list of rain files for the given location
 
@@ -72,4 +73,16 @@ plot_ly(x=tin.daily$Date,y=tin.daily$rain.inches,type='bar') %>% layout(title="R
 both.daily <- bind_rows(list(tin = tin.daily, HS = HS.daily),.id='source')
 plot_ly(x=both.daily$Date,y=both.daily$rain.inches,color=both.daily$source,colors=c("red","blue"),type='scatter',mode='markers') %>% layout(title="Rainfall per day in inches")
 plot_ly(x=both.daily$Date,y=both.daily$rain.inches,color=both.daily$source,colors=c("red","blue"),type='bar') %>% layout(title="Rainfall per day in inches")
-#rainfall.html
+#rainfall.html, save manually
+
+file.copy("C:/Users/riley/Documents/Coding/BNT/rainfall.html",
+          "C:/Users/riley/Documents/BNTGWMC/LatestData/R Filtered/rainfall.html",
+          overwrite = T)
+
+#rain by yearmon
+a <- tin.daily %>%
+  mutate(yearmon = as.yearmon(Date)) %>%
+  group_by(yearmon) %>%
+  summarize(sum = sum(rain.inches))
+
+plot_ly(x = a$yearmon, y= a$sum, type='bar')
