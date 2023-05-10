@@ -4,7 +4,8 @@ library(plotly)
 library(dplyr)
 library(lubridate)
 library(tidyr)
-
+library(pdftools)
+library(stringr)
 #8/31/22
 #plot two graphs Bedminster and Brendas way
 #One looks much noiser
@@ -21,6 +22,8 @@ b <- read.csv("C:/Users/riley/Documents/BNTGWMC/LatestData/R NewNames/Brendas_Wa
   bind_rows(a) %>%
   filter(D.T > "2019-01-01",D.T < "2019-06-01"  ) #just Jan 2019 because it's too slow otherwise
 
+
+a <- pdf_text("C:/Users/riley/Downloads/invoice-3293022.pdf")
 
 plot_ly(x=b$D.T,y=b$F.Offset,type='scatter',mode='lines+markers', color = b$well)
 
@@ -185,3 +188,118 @@ plot_ly(x=e$D.T, y=e$maximized,type='scatter',mode='lines',color=e$Well) %>%
 #AllWells2022.html
 
 #12/10/22 save it in the filtered folder to ease uploads
+
+#3/10/23 checking latest skow reading
+
+
+
+read.csv("C:/Users/riley/Documents/BNTGWMC/LatestData/Roffset/Roffset.csv") %>%
+  filter(Well == "Skow")
+#5/12/2022  0:00:00 -200.25 Skow
+
+a <- read.csv("C:/Users/riley/Documents/BNTGWMC/Groundwater data/LennonUpdates/2023_03 Skow/Skow_230306.csv",stringsAsFactors = F, 
+              skip=1) %>%
+  mutate(D.T = mdy_hms(paste(Date, Time)))
+
+read.well.logger <- function(x){
+  read.csv(x,stringsAsFactors = F, 
+           skip=1) %>%
+    mutate(D.T = mdy_hms(paste(Date, Time)))
+}
+
+plot_ly(x=a$D.T, y=a$Feet, type='scatter',mode='lines')
+
+a <- do.call(rbind,lapply(c("C:/Users/riley/Documents/BNTGWMC/Groundwater data/LennonUpdates/2023_03 Skow/Skow_230306.csv",
+                                              "C:/Users/riley/Documents/BNTGWMC/Groundwater data/LennonUpdates/2023_02/Skow_230207.csv"),
+                          read.well.logger)) %>%
+  arrange(D.T)
+  
+plot_ly(x=a$D.T, y=a$Feet, type='scatter',mode='lines')
+
+#Art says he's seeing some issues with a few wells.
+#Take a look at the daily stat files starting with HS which he said is bottoming out
+
+a <- read.csv("C:/Users/riley/Documents/BNTGWMC/LatestData/R byDay/Palisades_HighdailyStats.csv")
+
+plot_ly(x=a$date, y=a$day.max, type='scatter',mode='lines')
+
+#Still looks fine to me
+
+#on march 2 2023 he said
+#Looks like the offset corrections are not reported on the website for Chestnut Ridge East, Gruver East, and Ervin
+
+a <- read.csv("C:/Users/riley/Documents/BNTGWMC/LatestData/R byDay/Chestnut_Ridge_EastdailyStats.csv") %>%
+  mutate(date = as.Date(date))
+plot_ly(x=a$date, y=a$day.max, type='scatter',mode='lines')
+
+
+#4/30/23 invoices
+
+# a <- readPDF("C:/Users/riley/Downloads/invoice-3293022.pdf")
+a <- pdf_text("C:/Users/riley/Downloads/invoice-3293022.pdf")
+#total
+b <-  as.numeric(gsub("USD.*$","", gsub("^.*Total\\:","",a)))
+
+#date first line
+d <- str_trim(gsub("\n.*$","",a))
+
+
+#make function
+
+f1 <- function(x){
+  #whole dox
+  temp1 <- pdf_text(x)
+  #total
+  temp2 <- as.numeric(gsub("USD.*$","", gsub("^.*Total\\:","",temp1)))
+  #date
+  temp3 <- str_trim(gsub("\n.*$","",temp1))
+  #data frame
+  temp4 <- data.frame(
+    Date = temp3,
+    Total = temp2,
+    File = basename(x)
+  )
+  return(temp4)
+}
+
+a <- list.files("C:/Users/riley/Documents/BNTGWMC/Receipts/Cloudways",full.names = T)
+
+b <- do.call(rbind,lapply(a,f1))
+write.csv(b,"C:/Users/riley/Documents/BNTGWMC/Receipts/Cloudways.csv",row.names = F)
+
+
+#5/9/23 three different skow files, see how they're different
+
+a <- list.files("C:/Users/riley/Documents/BNTGWMC/Groundwater data/LennonUpdates/2023_04", pattern = "Skow",
+                full.names = T)
+
+b <- do.call(rbind,lapply(a,function(x){
+  read.csv(x,skip=1) %>%
+    mutate(File.Name = basename(x))
+  })) %>%
+  mutate(D.T = mdy_hms(paste(Date, Time, sep = " ")))
+
+plot_ly(x = b$D.T, y = b$Feet, color = b$File.Name, type='scatter',mode='lines')
+
+
+#add previous file
+
+d <- read.csv("C:/Users/riley/Documents/BNTGWMC/Groundwater data/LennonUpdates/wells only/Skow_230207.csv",skip=1) %>%
+    mutate(File.Name = basename("C:/Users/riley/Documents/BNTGWMC/Groundwater data/LennonUpdates/wells only/Skow_230207.csv")) %>%
+  mutate(D.T = mdy_hms(paste(Date, Time, sep = " "))) %>%
+  bind_rows(b)
+
+plot_ly(x = d$D.T, y = d$Feet, color = d$File.Name, type='scatter',mode='lines')
+
+#grab all skow data
+
+a <- list.files("C:/Users/riley/Documents/BNTGWMC/Groundwater data/LennonUpdates/wells only", pattern = "Skow",
+                full.names = T)
+
+b <- do.call(bind_rows,lapply(a,function(x){
+  read.csv(x,skip=1)
+})) %>%
+  mutate(D.T = mdy_hms(paste(Date, Time, sep = " "))) %>%
+  arrange(D.T)
+
+plot_ly(x = b$D.T, y = b$Feet,  type='scatter',mode='lines')
