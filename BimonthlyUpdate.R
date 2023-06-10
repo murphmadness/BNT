@@ -24,7 +24,7 @@ library(tidyr)
 #########The date modified needs to be defined for the new files
 #########with the EXACT date, not a date from before
 #########
-b <- as.Date("2023-05-09")
+b <- as.Date("2023-06-10")
 
 #h defines the location of all the raw well files including the new files
 h <- "C:/Users/riley/Documents/BNTGWMC/Groundwater data/LennonUpdates/wells only"
@@ -338,15 +338,15 @@ file.copy("C:/Users/riley/Documents/Coding/BNT/AllWells2023.png",
           overwrite = T)
 
 
-#just for Earthday
+# #just for Earthday
+# # e <- e %>%
+# #   filter(Well != "Palisades_High",
+# #          Well != "Gruver_3")
+# 
 # e <- e %>%
-#   filter(Well != "Palisades_High",
-#          Well != "Gruver_3")
-
-e <- e %>%
-  filter(         Well != "Gruver_3")
-
-#"C:\Users\riley\Pictures\Misc 2023\BNT2023.png"
+#   filter(         Well != "Gruver_3")
+# 
+# #"C:\Users\riley\Pictures\Misc 2023\BNT2023.png"
 
 ##############
 ##############
