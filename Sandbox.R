@@ -303,3 +303,59 @@ b <- do.call(bind_rows,lapply(a,function(x){
   arrange(D.T)
 
 plot_ly(x = b$D.T, y = b$Feet,  type='scatter',mode='lines')
+
+
+#6/13/23
+#Check why tabor data seems to drop off in filtered graph
+
+a <- read.csv("C:/Users/riley/Documents/BNTGWMC/LatestData/R Filtered/Tabor_Filtered.csv",
+              stringsAsFactors = F) %>%
+  filter(D.T > "2022-01-01")
+
+plot_ly(x=a$D.T,y=a$Feet,type='scatter',mode='markers')
+
+#try summary file
+
+b <- read.csv("C:/Users/riley/Documents/BNTGWMC/LatestData/R truncated/Tabor_Summary.csv",
+              stringsAsFactors = F)
+
+d <<- read.csv("C:/Users/riley/Documents/BNTGWMC/LatestData/R NewNames/Tabor.csv",
+               stringsAsFactors = F)
+
+#Check tabor to see if it had dipped down right during the reading
+
+
+e <- d %>%
+  filter(D.T > "2022-01-01")
+
+plot_ly(x=e$D.T,y=e$F.Offset,type='scatter',mode='lines')
+
+
+#See if I can do a plot with bar charts of rain and well data overlaid
+
+a <- readRDS("rainByYearmon.rds")
+b <- read.csv("C:/Users/riley/Documents/BNTGWMC/LatestData/R truncated/Brendas_Way_Summary.csv")
+
+
+plot_ly(x=b$D.T, y=b$maximized,type='scatter',mode='lines') %>% 
+  layout(title="Continuous Monitorring Wells",
+         xaxis=list(title="Date"),yaxis=list(title="depth below surface(ft)"))
+
+plot_ly(x = as.POSIXct(a$yearmon), y= a$sum, type='bar',text=as.character(a$yearmon)) %>%
+  add_trace(x=b$D.T, y=b$maximized,type='scatter',mode='lines')
+
+#Instead, do well max and min per month and rainfall per month
+
+d <- read.csv("C:/Users/riley/Documents/BNTGWMC/LatestData/R NewNames/Brendas_Way.csv") %>%
+  mutate(yearmon = as.yearmon(D.T)) %>%
+  group_by(yearmon) %>%
+  summarize(well.max = max(F.Offset), well.min = min(F.Offset), well.median = median(F.Offset)) %>%
+  pivot_longer(cols = c("well.max","well.min","well.median"))
+
+a <- readRDS("rainByYearmon.rds") %>%
+  rename(value = sum) %>%
+  mutate(name = "rain inches per month -140") %>%
+  mutate(value = value-140) %>%
+  bind_rows(d)
+
+plot_ly(x = a$yearmon, y=a$value,color=a$name, type='scatter',mode='lines+markers',text=as.character(a$yearmon))

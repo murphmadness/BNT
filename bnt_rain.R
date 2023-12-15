@@ -85,4 +85,6 @@ a <- tin.daily %>%
   group_by(yearmon) %>%
   summarize(sum = sum(rain.inches))
 
-plot_ly(x = a$yearmon, y= a$sum, type='bar')
+saveRDS(a, "rainByYearmon.rds")
+
+plot_ly(x = a$yearmon, y= a$sum, type='bar',text=as.character(a$yearmon))

@@ -24,7 +24,7 @@ library(tidyr)
 #########The date modified needs to be defined for the new files
 #########with the EXACT date, not a date from before
 #########
-b <- as.Date("2023-06-10")
+b <- as.Date("2023-09-30")
 
 #h defines the location of all the raw well files including the new files
 h <- "C:/Users/riley/Documents/BNTGWMC/Groundwater data/LennonUpdates/wells only"
@@ -319,6 +319,9 @@ e <- gaps %>%
   mutate(maximized = NA) %>%
   bind_rows(d) %>%
   arrange(D.T)
+
+# #Save for comparing in Eno Sandbox
+# saveRDS(e,"AllWellPlots.rds")
 
 #Save over file 
 #AllWells2022.html and .png #now 2023
