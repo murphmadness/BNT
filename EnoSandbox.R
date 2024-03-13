@@ -169,6 +169,85 @@ b <- a %>%
 
 write.csv(b, "C:/Users/riley/Documents/BNTGWMC/LatestData/R byDay/Cross_CreekdailyStats.csv")
 
+
+
+
+#2/17/24
+
+#Take a look at Eno Spurious Data
+
+#Daily Stats
+a <- read.csv("C:/Users/riley/Documents/BNTGWMC/LatestData/R byDay/Cross_CreekdailyStats.csv") %>%
+  mutate(date = ymd(date))
+
+#Unfiltered
+b <- read.csv("C:/Users/riley/Documents/BNTGWMC/LatestData/R NewNames/Cross_Creek.csv") %>%
+  mutate(D.T = ymd_hms(D.T), type = "Raw")
+
+#Combine and plot
+d <- a %>% mutate(Depth = day.max, D.T = as.POSIXct(date), type = "Daily Max") %>%
+  select(D.T, Depth,type) %>%
+  bind_rows(b) %>%
+  filter(D.T > mdy_hms("11/18/23 00:00:00"))
+
+plot_ly(x = d$D.T, y=d$Depth,color=d$type,type='scatter',mode='lines')
+
+
+#Might be really slow, but try excluding points one at a time based on the rate of change relative to the one before it
+
+#Check on the rates graphically
+e <- d %>%
+  filter(type == "Raw") %>%
+  mutate(rate = 1e4*(lead(Depth) - Depth)/(as.numeric(lead(D.T)) - as.numeric(D.T))) %>%
+  mutate(type = "Rate") %>%
+  select(D.T,rate,type) %>%
+  rename(Depth = rate) %>%
+  bind_rows(d)
   
+plot_ly(x = e$D.T, y=e$Depth,color=e$type,type='scatter',mode='lines')
+
+#Highest is when there were two measurements a minute apart, although the second seemed correct
+#drop right before, -4.8, could have excluded that one
+
+#Try that
+#Using data after 11/18/23
+p <- b %>% filter(D.T > mdy_hms("11/18/23 00:00:00")) %>%
+  mutate(rate = NA)
+
+#initiate
+m <- p[1,]
+j = 1
+for(i in 2:nrow(p)){
+  # i = 2
+  #calculate rate
+  temp1 = 1e4*(p$Depth[i] - m$Depth[j])/(as.numeric(p$D.T[i]) - as.numeric(m$D.T[j]))
+  p$rate[i] <- temp1
+  if(abs(temp1) < 4){
+    m <- bind_rows(m,p[i,])
+    j <- j+1
+  }
+}
+
+p <- p %>%
+  select(D.T, rate) %>%
+  mutate(type = "rate") %>%
+  rename(Depth = rate)
+
+n <- m %>%  mutate(type = "Filtered") %>%
+  bind_rows(d,p)
+
+plot_ly(x = n$D.T, y=n$Depth,color=n$type,type='scatter',mode='lines')
+
+#Just for sharing purposes, create an offset
+
+q <- n %>%
+  filter(type %in% c("Raw","Filtered")) %>%
+  mutate(Depth = ifelse(type == "Raw",Depth,Depth-3)) %>%
+  mutate(type = ifelse(type == "Filtered","Filtered (Offset)",type))
+
+plot_ly(x = q$D.T, y=q$Depth,color=q$type,type='scatter',mode='lines') %>%
+  layout(title="Raw vs Filtered Data shown offset",
+         xaxis=list(title="Date"),yaxis=list(title="depth of Raw data"))
+
   
 
