@@ -250,4 +250,15 @@ plot_ly(x = q$D.T, y=q$Depth,color=q$type,type='scatter',mode='lines') %>%
          xaxis=list(title="Date"),yaxis=list(title="depth of Raw data"))
 
   
+#Compare daily and full data Cross Creek 3/13/24
 
+a <- read.csv("C:/Users/riley/Documents/BNTGWMC/LatestData/R NewNames/Cross_Creek.csv", stringsAsFactors = F) %>%
+  mutate(D.T = ymd_hms(D.T)) %>%
+  mutate(Type = "Full")
+b <- read.csv("C:/Users/riley/Documents/BNTGWMC/LatestData/R byDay/Cross_CreekdailyStats.csv",stringsAsFactors = F) %>%
+  mutate(D.T = as.POSIXct(ymd(date))) %>%
+  rename(Depth = day.max) %>%
+  mutate(Type = "Daily max") %>%
+  bind_rows(a)
+
+plot_ly(x=b$D.T,y=b$Depth,color=b$Type,type='scatter',mode='lines')
