@@ -262,3 +262,42 @@ b <- read.csv("C:/Users/riley/Documents/BNTGWMC/LatestData/R byDay/Cross_Creekda
   bind_rows(a)
 
 plot_ly(x=b$D.T,y=b$Depth,color=b$Type,type='scatter',mode='lines')
+
+
+#Experiment with more manual scrubbing method for eno high points
+#8/17/24
+
+a <- read.csv("C:/Users/riley/Documents/BNTGWMC/LatestData/EnoMetaData/EnoLocations.csv",stringsAsFactors = F) %>%
+  mutate(Start.Date = mdy(Start.Date),End.Date = mdy(End.Date))
+
+b <- do.call(rbind,lapply(list.files("C:/Users/riley/Documents/BNTGWMC/LatestData/EnoRaw",full.names = T),read.eno)) %>%
+  inner_join(a,by="ID") %>%
+  filter(D.T > Start.Date, D.T < End.Date) %>%
+  filter(!(Location %in% c("Kind Earth Growers","Well Near PHS","Lodi Hill Well")))
+
+
+#Look at just cross creek
+
+d <- b %>% filter(Location == "Cross_Creek")
+
+
+plot_ly(x=d$D.T,y=d$Depth,type='scatter',mode='markers')
+
+
+#This well is mostly lower than 12ft.  There are a couple bad points at ~13' overlapping with the actual data
+#Consider min depths/max heights for different date ranges
+
+#combine with file setting max values
+
+g <- read.csv("C:/Users/riley/Documents/BNTGWMC/LatestData/EnoMetaData/EnoMax.csv") %>%
+  inner_join(d,by=c("ID", "Location")) %>%
+  mutate(Start.Date.Max = mdy(Start.Date.Max),End.Date.Max=mdy(End.Date.Max)) %>%
+  mutate(Drop = "Drop") %>%
+  mutate(Drop = ifelse(D.T > Start.Date.Max & D.T < End.Date.Max & Depth < Max.Height,"Inlcude",Drop)) %>%
+  select(-File.Name, Start.Date.Max,End.Date.Max) %>%
+  distinct()
+
+
+plot_ly(x=g$D.T,y=g$Depth,type='scatter',mode='markers',
+        color=g$Drop)
+
