@@ -25,7 +25,7 @@ library(tidyr)
 #########The date modified needs to be defined for the new files
 #########with the EXACT date, not a date from before
 #########
-b <- as.Date("2024-08-16")
+b <- as.Date("2025-02-05")
 
 #h defines the location of all the raw well files including the new files
 h <- "C:/Users/riley/Documents/BNTGWMC/Groundwater data/LennonUpdates/wells only"
@@ -361,6 +361,14 @@ file.copy("C:/Users/riley/Documents/Coding/BNT/AllWells2023.png",
 #   filter(         Well != "Gruver_3")
 # 
 # #"C:\Users\riley\Pictures\Misc 2023\BNT2023.png"
+
+#Checking for gaps
+
+
+# g <- readRDS("C:/Users/riley/Documents/BNTGWMC/LatestData/R Lists/Alex.rds")[[2]] %>%
+#   filter(D.T > "2024-01-01")
+# 
+# plot_ly(x=g$D.T,y=g$F.Offset, type='scatter',mode='lines')
 
 ##############
 ##############
